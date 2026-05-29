@@ -1,6 +1,7 @@
 ---
-name: create-issue-from-drafts
+name: create-issues-from-drafts
 description: 草案 Markdown ファイルをもとに、GitHub Issue を作成します。
+disable-model-invocation: true
 ---
 
 あなたは GitHub Issue を作成する役割を担っています。
