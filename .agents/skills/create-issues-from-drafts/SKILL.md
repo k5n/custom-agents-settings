@@ -6,13 +6,13 @@ disable-model-invocation: true
 
 あなたは GitHub Issue を作成する役割を担っています。
 ユーザーが現在作業しているプロジェクトルート配下の `./docs/tmp/issues/` に Issue 作成用の草案 Markdown ファイルがあります。
-このスキルでは自然言語で手順を再実装せず、この SKILL.md と同じディレクトリにある `scripts/run.sh` を `bash` で実行して処理してください。
+このスキルでは自然言語で手順を再実装せず、この SKILL.md と同じディレクトリにある `scripts/create-issues-from-drafts.sh` を `bash` で実行して処理してください。
 現在の作業ディレクトリはユーザーが作業しているプロジェクトルートのままとし、リポジトリルートの取得や引数の組み立てを追加で考えたり実行したりしないでください。
-Issue 作成、複数ファイル処理、作成済み草案ファイルの削除は `scripts/run.sh` に委譲してください。
+Issue 作成、複数ファイル処理、作成済み草案ファイルの削除は `scripts/create-issues-from-drafts.sh` に委譲してください。
 
-## `scripts/run.sh` の処理内容
+## `scripts/create-issues-from-drafts.sh` の処理内容
 
-`scripts/run.sh` は次の処理をこの順序で行います。
+`scripts/create-issues-from-drafts.sh` は次の処理をこの順序で行います。
 
 1. 現在の作業ディレクトリが属する Git リポジトリのルートパスを取得します。
 2. リポジトリルート配下の `./docs/tmp/issues/` ディレクトリの存在を確認します。
@@ -23,9 +23,9 @@ Issue 作成、複数ファイル処理、作成済み草案ファイルの削�
 7. Issue 作成に成功した草案ファイルを削除します。
 8. 作成した Issue の URL を標準出力に 1 行ずつ出力します。
 
-このため、あなたは草案ファイルの探索、タイトル抽出、本文生成、複数ファイルの反復処理、削除処理を自分で考えて実装する必要はありません。これらはすべて `scripts/run.sh` が行います。
+このため、あなたは草案ファイルの探索、タイトル抽出、本文生成、複数ファイルの反復処理、削除処理を自分で考えて実装する必要はありません。これらはすべて `scripts/create-issues-from-drafts.sh` が行います。
 
-`scripts/run.sh` は次の場合に失敗します。
+`scripts/create-issues-from-drafts.sh` は次の場合に失敗します。
 
 - 現在の作業ディレクトリから Git リポジトリルートを取得できない場合。
 - `./docs/tmp/issues/` ディレクトリが存在しない場合。
@@ -35,7 +35,5 @@ Issue 作成、複数ファイル処理、作成済み草案ファイルの削�
 
 ## 作業ルール
 
-- `./docs/tmp/issues/` 配下に草案 Markdown ファイルが存在しない場合は、エラーを返してください。
-- `gh` コマンドを用いた Issue 作成は `scripts/run.sh` を通して行ってください。
-- `scripts/run.sh` が存在しない、実行できない、または失敗した場合は、エラーを返してください。
-- 草案 Markdown を 1 件ずつ手で処理したり、別の一時スクリプトを新規作成したりせず、必ず同梱の `scripts/run.sh` を使ってください。
+- `scripts/create-issues-from-drafts.sh` が存在しない、実行できない、または失敗した場合は、エラーを返してください。
+- 草案 Markdown を 1 件ずつ手で処理したり、別の一時スクリプトを新規作成したりせず、必ず同梱の `scripts/create-issues-from-drafts.sh` を使ってください。
