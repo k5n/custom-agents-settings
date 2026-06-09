@@ -1,5 +1,5 @@
 ---
-name: push-spec-to-issue
+name: spec-push
 description: GitHub Issue へ対応するための仕様 Markdown ファイルを、対応する Issue のコメントとして残します。
 disable-model-invocation: true
 ---

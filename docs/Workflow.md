@@ -45,22 +45,23 @@ flowchart TD
     subgraph Human[作業依頼者（人）]
         A[AI エージェントに要望を伝える]
         C[草案を確認し、必要に応じて修正する]
-        D[GitHub に Issue を作成する\n（workflow-bin/create-issues-from-drafts.sh）]
+        D[GitHub への Issue を依頼する]
     end
 
     subgraph AI[AI エージェント]
-        B[Issue の草案を作成する\n（create-issue-drafts SKILL）]
+        B[Issue の草案を作成する\n（issue-draft SKILL）]
+        E[GitHub に Issue を作成する\n（issue-push SKILL）]
     end
 
-    A --> B --> C --> D
+    A --> B --> C --> D --> E
 ```
 
 1. 作業依頼者が AI エージェントに要望を伝え、AI エージェントが必要であれば複数 Issue に分割して草案 Markdown ファイルを作る
-    - create-issue-drafts SKILL を利用
+    - issue-draft SKILL を利用
 1. 作業依頼者が必要に応じて草案を修正する
     - AI と相談したり、修正を AI に依頼してもよい
 1. 作業依頼者が修正した内容で GitHub Issue を作成する。作成し終えた Issue の Markdown ファイルは削除される。
-    - workflow-bin/create-issues-from-drafts.sh を呼び出す
+    - issue-push SKILL を利用
 
 ### Issue を元に対応仕様を作成する（オプション）
 
@@ -74,37 +75,39 @@ flowchart TD
         D[内容を確認、作業者が判断すべきポイントを解消して修正する]
         F[レビューを依頼する]
         H{修正すべき指摘はもうない？}
-        I[確定した Issue 対応仕様を GitHub Issue のコメントとして残す\n（workflow-bin/push-spec-to-issue.sh）]
+        I[対応仕様の GitHub Issue コメントへの反映を依頼する]
         J[修正方針を AI に伝えて草案の修正を依頼する]
     end
 
     subgraph AI[AI エージェント]
-        C[対応仕様の草案 Markdown ファイルを作成する\n（create-spec-from-issue SKILL）]
+        C[対応仕様の草案 Markdown ファイルを作成する\n（spec-draft SKILL）]
         E[修正方針に従って修正する]
-        G[レビューし、改善方針をまとめる\n（review-issue-spec SKILL）]
+        G[レビューする\n（spec-review SKILL）]
         K[修正方針に従って修正する]
+        L[対応仕様を GitHub Issue のコメントとして残す\n（spec-push SKILL）]
     end
 
     A -- はい --> B --> C --> D --> E --> F --> G --> H
-    H -- はい --> I
+    H -- はい --> I --> L
     H -- いいえ --> J --> K --> F
 ```
 
 1. 作業依頼者が Issue 番号を伝え、AI エージェントに対応仕様の草案 Markdown ファイルを作成させる
-    - create-spec-from-issue SKILL を利用
+    - spec-draft SKILL を利用
       - 内部でレビューを行い、人間の判断が必要ない修正は自動で行われる
       - 草案の最後には **作業依頼者が判断すべきポイント** を提示する
 1. 作業依頼者が草案を確認して、必要に応じて修正する
     - **作業依頼者が判断すべきポイント** は全て解消しておく（AI と相談しつつ）
     - 修正方針を AI エージェントに指示して、修正させる
-1. AI エージェントに草案をレビューさせ、改善方針をまとめさせ、必要に応じて修正させる
-    - review-issue-spec SKILL を利用
-    - 修正方針を AI エージェントに指示して、修正させる
-    - 何回かレビューと指摘修正を繰り返す
+1. （別セッションに切り替え）
+1. 何回かレビューと指摘修正を繰り返す
+    1. spec-review SKILL を利用して、AI エージェントにレビューしてもらう
+    1. 指摘事項に対しての修正方針を AI エージェントに指示して、修正させる
+    1. （別セッションに切り替え）
 1. 作業依頼者が確定した Issue 対応仕様を GitHub Issue のコメントとして残し、草案 Markdown ファイルは削除する
-    - workflow-bin/push-spec-to-issue.sh を呼び出す
+    - spec-push SKILL を呼び出す
 
-## 作業者のワークフロー（AI エージェント委任）
+## 作業者のワークフロー（全委任）
 
 ```mermaid
 flowchart TD
@@ -113,13 +116,13 @@ flowchart TD
     end
 
     subgraph AI[AI エージェント]
-        B[全自動で対応して PR を作成する\n（resolve-issue SKILL）]
+        B[全自動で対応して PR を作成する\n（pr-auto SKILL）]
     end
 
     A --> B
 ```
 
-resolve-issue SKILL を利用して、Issue 番号を指定して PR を作成します。
+pr-auto SKILL を利用して、Issue 番号を指定して PR を作成します。
 
 ### AI エージェントの起動も自動化したい場合
 
@@ -128,6 +131,127 @@ resolve-issue SKILL を利用して、Issue 番号を指定して PR を作成�
 - GitHub Issue に何らかのトリガーを用意する
   - コメントに特定のキーワードを入れる
   - 特定のラベルを付与する
-- 上記のトリガーを検知して AI エージェントに resolve-issue SKILL を呼び出させる仕組みを用意
-  - GitHub Actions で上記のトリガーを検知して、resolve-issue SKILL を呼び出す
-  - PC 上で常駐させたポーリングプログラムが上記のトリガーを検知して、AI エージェントに resolve-issue SKILL を呼び出させる
+- 上記のトリガーを検知して AI エージェントに pr-auto SKILL を呼び出させる仕組みを用意
+  - GitHub Actions で上記のトリガーを検知して、pr-auto SKILL を呼び出す
+  - PC 上で常駐させたポーリングプログラムが上記のトリガーを検知して、AI エージェントに pr-auto SKILL を呼び出させる
+
+## 作業者のワークフロー（協働）
+
+作業者が AI エージェントと協働して対応する場合のワークフローは、pr-auto SKILL が全自動で行うのと同様の流れを、人が順に AI エージェントに指示を出しながら対応する形になります。
+
+- 途中途中で人間がチェックを入れながら作業したい
+- 理解負債を抱えないために、AI エージェントが行った内容を理解したい
+
+などの場合に、このフローを選択します。
+
+```mermaid
+flowchart TD
+    A[作業ブランチを作成する]
+    B[Issue 対応仕様を用意する]
+    C[対応仕様を元に全体実施計画を作成する]
+    D[全体実行計画の各フェーズを順に実施する]
+    E[PR を作成する]
+
+    A --> B --> C --> D --> E
+```
+
+### 作業ブランチを作成する
+
+create-issue-branch SKILL を利用して、作業用のブランチを作成し、そのブランチに切り替えます。
+ブランチ名は自動で決められます。
+
+### Issue 対応仕様を用意する
+
+```mermaid
+flowchart TD
+    subgraph Human[作業依頼者（人）]
+        A[Issue 番号を伝える]
+        E[内容を確認、作業者が判断すべきポイントを解消して修正する]
+        G[レビューを依頼する]
+        I{修正すべき指摘はもうない？}
+        J[終了]
+        K[修正方針を AI に伝えて草案の修正を依頼する]
+    end
+
+    subgraph AI[AI エージェント]
+        B[Issue 内容とコメントを取得して Markdown ファイルに保存\n（create-docs-from-issue SKILL）]
+        C{対応仕様が含まれるか？}
+        D[対応仕様の草案 Markdown ファイルを作成する\n（create-spec-from-issue SKILL）]
+        F[修正方針に従って修正する]
+        H[レビューする\n（review-issue-spec SKILL）]
+        L[修正方針に従って修正する]
+    end
+
+    A --> B --> C
+    C -- いいえ --> D --> E --> F --> G
+    G --> H --> I
+    I -- はい --> J
+    I -- いいえ --> K --> L --> G
+```
+
+Issue に対応仕様が記載されていない場合は、作業者が対応仕様を作成します。
+
+ただし **workflow-bin/push-spec-to-issue.sh は実行しません**。
+対応仕様は PR のコメントに残します（最後に PR を作成する際に実行するスクリプトが処理します）。
+
+### 対応仕様を元に全体実施計画を作成する
+
+```mermaid
+flowchart TD
+    subgraph Human[作業者（人）]
+        A[対応仕様のファイルパスを伝える]
+        C[全体実施計画を確認し、必要に応じて修正する]
+        D[レビューを依頼する]
+        F{修正すべき指摘はもうない？}
+        G[終了]
+        H[修正方針を AI に伝えて修正を依頼する]
+    end
+
+    subgraph AI[AI エージェント]
+        B[対応仕様を元に全体実施計画書を作成する\n（create-implementation-plan SKILL）]
+        E[レビューする\n（implementation-plan-review SKILL）]
+        I[修正方針に従って修正する]
+    end
+
+    A --> B --> C --> D --> E --> F
+    F -- はい --> G
+    F -- いいえ --> H --> I --> D
+```
+
+1. create-implementation-plan SKILL を利用して、対応仕様を元に全体実施計画を作成
+1. （別セッションに切り替え）
+1. レビューと修正の繰り返し
+    1. 出力された全体実施計画のファイルパスを指定して implementation-plan-review SKILL を呼び出しレビューさせる
+    1. 各指摘事項や改善項目に対して修正方針を検討し、必要に応じて修正を指示
+    1. （別セッションに切り替え）
+
+レビューをどこで止めるか、指摘事項にどこまで対応するかは、作業者の判断に任せます。
+
+### 全体実行計画の各フェーズを順に実施する
+
+全体実施計画の指定フェーズに対して以下を実行してください。
+全体実施計画が１フェーズしかない場合は、全体実施計画をフェーズ１の詳細実施計画として扱ってください。
+
+1. フェーズが複数ある場合はフェーズの詳細実施計画を立てる
+    1. detail-plan SKILL を呼び出し、そのフェーズの詳細実施計画書を作成
+    1. （別セッションに切り替え）
+    1. レビューと修正の繰り返し
+        1. detail-plan-review SKILL を呼び出し、出力されたフェーズ詳細実施計画のレビューを行う
+        1. 各指摘事項や改善項目に対して修正方針を検討し、必要に応じて修正を指示
+        1. （別セッションに切り替え）
+1. 詳細実施計画書を指定して implement SKILL を呼び出し、フェーズの実施を行う
+1. （別セッションに切り替え）
+1. レビューと修正の繰り返し
+    1. 詳細実施計画書を指定して implementation-review SKILL を呼び出し、計画通りに実施されたかどうか、問題がないかどうか、改善点がないかどうかをレビューする
+    1. 各指摘事項や改善項目に対して修正方針を検討し、必要に応じて修正を指示
+    1. （別セッションに切り替え）
+1. refactor SKILL を呼び出し、リファクタリングを行う
+1. （別セッションに切り替え）
+1. git-commit SKILL を呼び出し、適切で簡潔なコミットメッセージで git コミットする
+1. （別セッションに切り替え）
+
+### PR を作成する
+
+1. create-pr SKILL を呼び出し、PR を作成する。
+    - PR のタイトルと説明は、対応仕様を元に自動で生成される。
+    - 途中生成したドキュメント類は PR のコメントに残され、削除される

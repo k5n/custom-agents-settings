@@ -1,5 +1,5 @@
 ---
-name: create-issues-from-drafts
+name: issue-push
 description: 草案 Markdown ファイルをもとに、GitHub Issue を作成します。
 disable-model-invocation: true
 ---

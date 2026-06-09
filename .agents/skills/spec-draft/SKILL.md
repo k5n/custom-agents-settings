@@ -1,5 +1,5 @@
 ---
-name: create-spec-from-issue
+name: spec-draft
 description: 指定された GitHub Issue をもとに、仕様策定の草案 Markdown ファイルを作成します。
 argument-hint: "[issue-number]"
 disable-model-invocation: true

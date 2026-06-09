@@ -1,5 +1,5 @@
 ---
-name: review-issue-spec
+name: spec-review
 description: GitHub Issue へ対応するための仕様草案 Markdown ファイルをレビューします。
 disable-model-invocation: true
 ---
