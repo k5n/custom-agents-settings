@@ -1,0 +1,9 @@
+name = "spec-draft-reviewer"
+description = "仕様書の草案をレビューします"
+developer_instructions = """
+review-draft-spec SKILL を利用してください。
+"""
+
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+sandbox_mode = "read-only"

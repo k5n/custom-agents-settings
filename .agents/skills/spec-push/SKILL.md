@@ -17,7 +17,7 @@ disable-model-invocation: true
 2. リポジトリルート配下の `./docs/tmp/spec.md` ファイルの存在を確認します。
 3. `spec.md` の 1 行目が `# Issue #[issue-number] 対応仕様` 形式であることを確認し、対応する Issue 番号を取得します。
 4. `gh issue comment` を実行して `spec.md` の内容を対応する Issue のコメントとして投稿します。
-5. コメント投稿に成功した場合のみ `spec.md` と `./docs/tmp/spec-review-*.md` を削除します。
+5. コメント投稿に成功した場合のみ `spec.md`、`./docs/tmp/issue.md`、`./docs/tmp/spec-review-*.md` を削除します。
 6. コメント投稿先の Issue URL を標準出力に 1 行出力します。
 
 このため、あなたは `spec.md` の存在確認、Issue 番号抽出、`gh` コマンド呼び出し、削除処理を自分で考えて実装する必要はありません。これらはすべて `scripts/push-spec-to-issue.sh` が行います。

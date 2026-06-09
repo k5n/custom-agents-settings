@@ -17,6 +17,8 @@ if [[ ! -f "$spec_file" ]]; then
 	exit 1
 fi
 
+issue_file="$repo_root/docs/tmp/issue.md"
+
 first_line=$(sed -n '1p' "$spec_file")
 if [[ ! "$first_line" =~ ^#\ Issue\ #([0-9]+)\ 対応仕様$ ]]; then
 	printf 'Spec title is invalid: %s\n' "$first_line" >&2
@@ -28,5 +30,5 @@ repo=$(cd "$repo_root" && gh repo view --json nameWithOwner -q .nameWithOwner)
 
 cd "$repo_root"
 gh issue comment "$issue_number" --repo "$repo" --body-file "$spec_file" >/dev/null
-rm -f "$spec_file" "$repo_root/docs/tmp"/spec-review-*.md
+rm -f "$spec_file" "$issue_file" "$repo_root/docs/tmp"/spec-review-*.md
 gh issue view "$issue_number" --repo "$repo" --json url -q .url
