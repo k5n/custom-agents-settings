@@ -146,21 +146,20 @@ pr-auto SKILL を利用して、Issue 番号を指定して PR を作成しま�
 
 ```mermaid
 flowchart TD
-    A[作業ブランチを作成する]
-    B[Issue 対応仕様を用意する]
-    C[対応仕様を元に全体実施計画を作成する]
-    D[全体実行計画の各フェーズを順に実施する]
-    E[PR を作成する]
+    A[Issue 内容を取得、ブランチ作成]
+    B{Issue に対応仕様が含まれるか？}
+    C[Issue 対応仕様を作成する]
+    D[対応仕様を元に全体実施計画を作成する]
+    E[全体実行計画の各フェーズを順に実施する]
+    F[PR を作成する]
 
-    A --> B --> C --> D --> E
+    A --> B
+    B -- はい --> D
+    B -- いいえ --> C --> D
+    D --> E --> F
 ```
 
-### 作業ブランチを作成する
-
-create-issue-branch SKILL を利用して、作業用のブランチを作成し、そのブランチに切り替えます。
-ブランチ名は自動で決められます。
-
-### Issue 対応仕様を用意する
+### Issue 対応仕様を用意、ブランチ作成
 
 ```mermaid
 flowchart TD
@@ -174,11 +173,11 @@ flowchart TD
     end
 
     subgraph AI[AI エージェント]
-        B[Issue 内容とコメントを取得して Markdown ファイルに保存\n（create-docs-from-issue SKILL）]
+        B[Issue 内容とコメントを取得して Markdown ファイルに保存\n（pr-start SKILL）]
         C{対応仕様が含まれるか？}
-        D[対応仕様の草案 Markdown ファイルを作成する\n（create-spec-from-issue SKILL）]
+        D[対応仕様の草案 Markdown ファイルを作成する]
         F[修正方針に従って修正する]
-        H[レビューする\n（review-issue-spec SKILL）]
+        H[レビューする\n（spec-review SKILL）]
         L[修正方針に従って修正する]
     end
 
@@ -191,7 +190,7 @@ flowchart TD
 
 Issue に対応仕様が記載されていない場合は、作業者が対応仕様を作成します。
 
-ただし **workflow-bin/push-spec-to-issue.sh は実行しません**。
+ただし **spec-push SKILL は実行しません**。
 対応仕様は PR のコメントに残します（最後に PR を作成する際に実行するスクリプトが処理します）。
 
 ### 対応仕様を元に全体実施計画を作成する
