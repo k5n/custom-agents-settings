@@ -5,16 +5,26 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
+  ./install.sh
   ./install.sh <target-repository-path>
 
-Creates symbolic links in the target repository for:
+Creates symbolic links in:
+  - $HOME when no target repository path is given
+  - the target repository when a path is given
+
+Source link roots:
   .agents/skills
   .codex/agents
   .github/agents
+
+Home install targets:
+  .agents/skills
+  .codex/agents
+  .copilot/agents
 EOF
 }
 
-if [[ $# -ne 1 ]]; then
+if [[ $# -gt 1 ]]; then
   usage >&2
   exit 1
 fi
@@ -34,32 +44,49 @@ relative_path() {
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 SOURCE_ROOT="$(canonical_path "$SCRIPT_DIR")"
-TARGET_INPUT="$1"
 
-if [[ ! -d "$TARGET_INPUT" ]]; then
-  echo "Error: target repository path does not exist: $TARGET_INPUT" >&2
-  exit 1
+if [[ $# -eq 0 ]]; then
+  TARGET_LABEL="home directory"
+  TARGET_ROOT="$(canonical_path "$HOME")"
+else
+  TARGET_LABEL="target repository"
+  TARGET_INPUT="$1"
+
+  if [[ ! -d "$TARGET_INPUT" ]]; then
+    echo "Error: target repository path does not exist: $TARGET_INPUT" >&2
+    exit 1
+  fi
+
+  TARGET_ROOT="$(canonical_path "$TARGET_INPUT")"
 fi
-
-TARGET_ROOT="$(canonical_path "$TARGET_INPUT")"
 
 if [[ "$TARGET_ROOT" == "$SOURCE_ROOT" ]]; then
-  echo "Error: target repository must be different from the source repository." >&2
+  echo "Error: $TARGET_LABEL must be different from the source repository." >&2
   exit 1
 fi
 
-if [[ ! -e "$TARGET_ROOT/.git" ]]; then
+if [[ $# -eq 1 && ! -e "$TARGET_ROOT/.git" ]]; then
   echo "Error: target path is not a Git repository root: $TARGET_ROOT" >&2
   exit 1
 fi
 
-LINK_ROOTS=(
+SOURCE_LINK_ROOTS=(
   ".agents/skills"
   ".codex/agents"
   ".github/agents"
 )
 
-for rel_dir in "${LINK_ROOTS[@]}"; do
+if [[ $# -eq 0 ]]; then
+  TARGET_LINK_ROOTS=(
+    ".agents/skills"
+    ".codex/agents"
+    ".copilot/agents"
+  )
+else
+  TARGET_LINK_ROOTS=("${SOURCE_LINK_ROOTS[@]}")
+fi
+
+for rel_dir in "${SOURCE_LINK_ROOTS[@]}"; do
   if [[ ! -d "$SOURCE_ROOT/$rel_dir" ]]; then
     echo "Error: source directory is missing: $SOURCE_ROOT/$rel_dir" >&2
     exit 1
@@ -70,9 +97,11 @@ declare -a SOURCE_ENTRIES=()
 declare -a TARGET_ENTRIES=()
 declare -a CONFLICTS=()
 
-for rel_dir in "${LINK_ROOTS[@]}"; do
-  source_dir="$SOURCE_ROOT/$rel_dir"
-  target_dir="$TARGET_ROOT/$rel_dir"
+for i in "${!SOURCE_LINK_ROOTS[@]}"; do
+  source_rel_dir="${SOURCE_LINK_ROOTS[$i]}"
+  target_rel_dir="${TARGET_LINK_ROOTS[$i]}"
+  source_dir="$SOURCE_ROOT/$source_rel_dir"
+  target_dir="$TARGET_ROOT/$target_rel_dir"
 
   while IFS= read -r -d '' source_entry; do
     entry_name="$(basename "$source_entry")"
@@ -105,7 +134,7 @@ if (( ${#CONFLICTS[@]} > 0 )); then
   exit 1
 fi
 
-for rel_dir in "${LINK_ROOTS[@]}"; do
+for rel_dir in "${TARGET_LINK_ROOTS[@]}"; do
   mkdir -p "$TARGET_ROOT/$rel_dir"
 done
 
