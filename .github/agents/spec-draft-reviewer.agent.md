@@ -11,5 +11,4 @@ tools:
     "web",
   ]
 ---
-
 review-draft-spec SKILL を利用してください。

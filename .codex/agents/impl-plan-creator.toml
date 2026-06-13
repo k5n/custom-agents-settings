@@ -1,0 +1,6 @@
+name = "impl-plan-creator"
+description = "対応仕様を元に全体実施計画を作成します。"
+developer_instructions = "create-impl-plan SKILL を利用してください。"
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+sandbox_mode = "workspace-write"
