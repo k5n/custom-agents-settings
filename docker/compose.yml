@@ -1,0 +1,22 @@
+services:
+  workspace:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["sleep", "infinity"]
+    init: true
+    stdin_open: true
+    tty: true
+    user: ubuntu
+    working_dir: /home/ubuntu
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:exec
+    volumes:
+      - home-ubuntu:/home/ubuntu
+
+volumes:
+  home-ubuntu:
